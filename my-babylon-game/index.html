@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Babylon.js Game</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Game Canvas -->
+  <canvas id="renderCanvas"></canvas>
+
+  <!-- Loading Screen -->
+  <div id="loadingScreen">Loading game...</div>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div id="healthDisplay" style="font-size: 24px;">Health: 100</div>
+    <div id="donutsDisplay" style="font-size: 24px;">Donuts: 0</div>
+    <div id="positionDisplay">Position: (x: 0, y: 0, z: 0)</div>
+  </div>
+
+  <!-- Finish Message -->
+  <div id="finishDisplay"></div>
+
+  <!-- Game Script -->
+  <script type="module" src="/src/InitGame.ts"></script>
+
+</body>
+</html>

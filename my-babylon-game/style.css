@@ -1,0 +1,63 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 0;
+}
+
+#loadingScreen {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 2em;
+  z-index: 9999;
+  transition: opacity 0.5s ease;
+}
+
+#loadingScreen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#hud {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  color: white;
+  z-index: 999;
+}
+
+#positionDisplay {
+  font-size: 16px;
+  font-family: monospace;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 5px;
+  margin-top: 10px;
+}
+
+#finishDisplay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgb(18, 238, 18);
+  font-size: 72px;
+  font-weight: bold;
+  text-shadow: 3px 3px 5px black;
+  z-index: 1000;
+}
