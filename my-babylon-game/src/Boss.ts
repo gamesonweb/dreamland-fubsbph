@@ -14,7 +14,7 @@ export class Boss extends GameObject {
             const min = new Vector3(-0.25, -0.25, -0.4);
             const max = new Vector3(0.25, 0.25, 0.4);
             mesh.setBoundingInfo(new BoundingInfo(min, max));
-            mesh.showBoundingBox = true;
+            mesh.showBoundingBox = false;
 
             this.createCollisionCube(scene, position, scale, min, max);
 

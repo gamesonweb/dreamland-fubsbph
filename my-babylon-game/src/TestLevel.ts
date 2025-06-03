@@ -10,7 +10,7 @@ import { GameObject } from "./GameObject";
 import { Boss } from "./Boss";
 
 export default class TestLevel {
-    public ready: Promise<void>; 
+    public ready: Promise<void>;
     public scene: Scene;
     private groundSize: number = 20;
     public ground: any;
@@ -141,7 +141,7 @@ export default class TestLevel {
     //private loadLevel(): void {
     public async loadLevel(): Promise<void> {
         return new Promise((resolve) => {
-            SceneLoader.ImportMesh(null, "/", "level.glb", this.scene, (meshes) => {
+            SceneLoader.ImportMesh(null, "/", "no_stairs_1lvl.glb", this.scene, (meshes) => {
                 console.log("Level loaded!", meshes);
 
                 meshes.forEach(mesh => {
@@ -225,7 +225,7 @@ export default class TestLevel {
 
                 meshes.forEach(mesh => {
                 mesh.checkCollisions = true;
-                mesh.receiveShadows = true;              
+                mesh.receiveShadows = true;
                 });
                 meshes[0].position = new Vector3(-4.65, 0, -1.95);
                 meshes[0].rotation = new Vector3(0, Math.PI*2, 0);
@@ -246,7 +246,7 @@ export default class TestLevel {
         this.cube.material = cubeMaterial;
         this.cube.checkCollisions = true;
     }
-    
+
 
     private loadDonuts() {
         const donutPositions = [
@@ -267,9 +267,9 @@ export default class TestLevel {
 
     private loadSpiders(){
         const spidersPositions = [
-            new Vector3(-75, -7, 0.36),
-            new Vector3(-80, -7, 0.36),
-            new Vector3(-85, -7, 0.36),
+            new Vector3(-75, -8, 0.36),
+            new Vector3(-80, -8, 0.36),
+            new Vector3(-85, -8, 0.36),
         ];
         spidersPositions.forEach((pos, index) => {
             let spider = new Spider(this.scene, "/", "spider.glb", pos, new Vector3(5, 5, 5));
@@ -290,38 +290,32 @@ export default class TestLevel {
         if (object.position.z < -this.boundary) object.position.z = -this.boundary;
     }
 
-    private checkCollisionWithSpiders(mainCharacter: Character,bounceForce: number) {
+    private checkCollisionWithSpiders(mainCharacter: Character, bounceForce: number) {
         if (!mainCharacter.isAlive) return;
         const spidersToCheck = [...this.spiders];
 
         spidersToCheck.forEach(spider => {
             if (spider.collisionCube) {
-                const distance = Vector3.Distance(mainCharacter.mesh.position, spider.collisionCube.position);
+                const distance = Vector3.Distance(mainCharacter.collisionMesh.position, spider.collisionCube.position);
                 const distanceCube = Vector3.Distance(this.cube.position, spider.collisionCube.position);
 
                 if (distance < 2) {
-                    // Calculer la direction du coup (de l'araignée vers le personnage)
-                    const direction = mainCharacter.mesh.position.subtract(spider.collisionCube.position).normalize();
-
-                    // Appliquer le recul au personnage
+                    const direction = mainCharacter.collisionMesh.position.subtract(spider.collisionCube.position).normalize();
                     mainCharacter.getHit(direction);
-
-                    // Appliquer aussi le petit bounce existant
-                    mainCharacter.mesh.position.x += direction.x * bounceForce;
-                    mainCharacter.mesh.position.z += direction.z * bounceForce;
+                    mainCharacter.collisionMesh.position.x += direction.x * bounceForce;
+                    mainCharacter.collisionMesh.position.z += direction.z * bounceForce;
+                    mainCharacter.mesh.position = mainCharacter.collisionMesh.position.clone(); // Sync model position
                 }
 
-                if ((distanceCube < 2 && !mainCharacter.isGrabbing)) {
-                    const direction = mainCharacter.mesh.position.subtract(spider.collisionCube.position).normalize();
-                    //this.cube.position.x += direction.x * bounceForce;
-                    //this.cube.position.z += direction.z * bounceForce;
+                if (distanceCube < 2 && !mainCharacter.isGrabbing) {
+                    const direction = mainCharacter.collisionMesh.position.subtract(spider.collisionCube.position).normalize();
                 }
+
                 if ((distance < 2 && mainCharacter.isGrabbing) || (distanceCube < 2 && mainCharacter.isGrabbing)) {
-                    const direction = mainCharacter.mesh.position.subtract(spider.collisionCube.position).normalize();
-                    mainCharacter.mesh.position.x += direction.x * bounceForce;
-                    mainCharacter.mesh.position.z += direction.z * bounceForce;
-                    //this.cube.position.x += direction.x * bounceForce;
-                    //this.cube.position.z += direction.z * bounceForce;
+                    const direction = mainCharacter.collisionMesh.position.subtract(spider.collisionCube.position).normalize();
+                    mainCharacter.collisionMesh.position.x += direction.x * bounceForce;
+                    mainCharacter.collisionMesh.position.z += direction.z * bounceForce;
+                    mainCharacter.mesh.position = mainCharacter.collisionMesh.position.clone();
                 }
             }
         });
@@ -331,7 +325,7 @@ export default class TestLevel {
         if (!mainCharacter.isAlive) return;
 
         if (this.boss?.attackCube) {
-            const distance = Vector3.Distance(mainCharacter.mesh.position, this.boss?.attackCube.position);
+            const distance = Vector3.Distance(mainCharacter.collisionMesh.position, this.boss?.attackCube.position);
             if (distance < 5) {
                 mainCharacter.getHit(new Vector3(0));
             }
@@ -343,7 +337,7 @@ export default class TestLevel {
 
         donutsToCheck.forEach((donut, index) => {
             if (donut.mesh) {
-                const distance = Vector3.Distance(mainCharacter.mesh.position, donut.mesh.position);
+                const distance = Vector3.Distance(mainCharacter.collisionMesh.position, donut.mesh.position);
 
                 if (distance < 1) {
                     donut.mesh.dispose();
@@ -369,7 +363,7 @@ export default class TestLevel {
     starting(mainCharacter: Character) : Character{
         const bounceForce = 0.5;
         const camera = new FollowCamera("FollowCam", new Vector3(0, 5, -10), this.scene);
-        camera.lockedTarget = mainCharacter.mesh; // The camera follows the character
+        camera.lockedTarget = mainCharacter.collisionMesh; // The camera follows the character
         camera.radius = 10;
         camera.heightOffset = 5;
         camera.rotationOffset = 0;
@@ -388,6 +382,9 @@ export default class TestLevel {
             "KeyS": "backward",
             "KeyA": "right",
             "KeyD": "left",
+            // AZERTY movement
+            "KeyZ": "forward",
+            "KeyQ": "left",
             "ArrowUp": "forward",
             "ArrowDown": "backward",
             "ArrowLeft": "right",
@@ -409,7 +406,7 @@ export default class TestLevel {
 
                         if (BoundingBox.Intersects(spiderBox, attackBox)) {
                             // Calculer la direction du coup (du personnage vers l'araignée)
-                            const direction = spider.collisionCube.position.subtract(mainCharacter.mesh.position).normalize();
+                            const direction = spider.collisionCube.position.subtract(mainCharacter.collisionMesh.position).normalize();
 
                             // Infliger des dégâts avec la direction
                             spider.getHit(direction);
@@ -443,10 +440,10 @@ export default class TestLevel {
                                 this.boss.mesh?.dispose();
                                 this.boss.collisionCube?.dispose();
                                 this.boss.attackCube?.dispose;
-                                if(this.finishDisplay!=null) this.finishDisplay.textContent = `LEVEL FINISHED`;
+                                /*if(this.finishDisplay!=null) this.finishDisplay.textContent = `LEVEL FINISHED`;
                                 setTimeout(() => {
                                     this.levelFinished = true;
-                                }, 1000);
+                                }, 1000);*/
                             }
                         }
                     }
@@ -499,11 +496,10 @@ export default class TestLevel {
         });
 
         this.engine.runRenderLoop(() => {
-            if (!mainCharacter.isAlive || !mainCharacter.isLoaded) return;
-
+            //if (!mainCharacter.isAlive || !mainCharacter.isLoaded) return;
             if( this.healthDisplay!=null) this.healthDisplay.textContent = `HP: ${mainCharacter.currentHP}/${mainCharacter.maxHP}`;
             if( this.donutsDisplay!=null) this.donutsDisplay.textContent = `donuts: ${this.donutsFound}/5`;
-            const pos = mainCharacter.mesh.position;
+            const pos = mainCharacter.collisionMesh.position;
             if(this.positionDisplay!=null) this.positionDisplay.textContent = `Position: (x: ${pos.x.toFixed(2)}, y: ${pos.y.toFixed(2)}, z: ${pos.z.toFixed(2)})`;
             if(this.finishDisplay!=null && this.boss!=null && this.boss.hp>0) this.finishDisplay.textContent = ``;
 
@@ -529,19 +525,19 @@ export default class TestLevel {
 
             // Check for collisions with any of the donuts
             this.checkCollisionWithDonuts(mainCharacter);
-            if(mainCharacter.mesh.position._x<-60){
+            if(mainCharacter.collisionMesh.position._x<-60){
                 this.spiders.forEach(spider => {
-                    spider.crawl(mainCharacter);
+                    spider.crawl(mainCharacter, this.spiders);
                     spider.update(); // Ajoutez cette ligne
                 });
             }
-            this.checkBoundaries(mainCharacter.mesh);
+            //this.checkBoundaries(mainCharacter.collisionMesh);
             this.checkCollisionWithSpiders(mainCharacter,bounceForce);
 
             if(this.boss!=null && this.boss.hp>0) this.boss?.update();
             this.checkCollisionWithBoss(mainCharacter);
 
-            const cubeDistance = Vector3.Distance(mainCharacter.mesh.position, this.cube.position);
+            const cubeDistance = Vector3.Distance(mainCharacter.collisionMesh.position, this.cube.position);
             //console.log(cubeDistance)
             if (cubeDistance < 2.8 && mainCharacter.isGrabbing) {
                 mainCharacter.speed = 0.025;
@@ -561,25 +557,25 @@ export default class TestLevel {
 
     private createBorders() {
         const wallMaterial = new StandardMaterial("wallMat", this.scene);
-        const wallHeight = 9.8; 
+        const wallHeight = 9.8;
         const wallThickness = 0.2;
         const groundSize = this.groundSize ?? 15; // default fallback if undefined
-        
+
         // LEFT WALL (No Door, Goes Under Ground)
         const leftWall = MeshBuilder.CreateBox("leftWall", {
             width: wallThickness,
             height: wallHeight,
             depth: groundSize
         }, this.scene);
-        
+
         // Drop wall underground by aligning bottom to ground level
         leftWall.position.x = -groundSize * 1.5;
         leftWall.position.y = wallHeight / 2 - 10; // 10 units below ground
         leftWall.material = wallMaterial;
         leftWall.checkCollisions = true;
-        leftWall.isVisible = false; 
+        leftWall.isVisible = false;
         leftWall.freezeWorldMatrix();
-        
+
         // **Create Stairs Descending from the Door**
         this.createStairs();
     }
@@ -589,23 +585,23 @@ export default class TestLevel {
         const stairMaterial = new StandardMaterial("stairMat", this.scene);
         const woodTexture = new Texture("/textures/Metal029_1K-JPG_Roughness.jpg", this.scene);
         stairMaterial.diffuseTexture = woodTexture;
-    
+
         const stairDepth = width;
         const stairWidth = 1; // Thickness of each step
         const stairHeight = 1;
         const stairCount = 10; // Number of steps
-    
+
         for (let i = 0; i < stairCount; i++) {
             const step = MeshBuilder.CreateBox(`stair${i}`, {
                 width: stairWidth,
                 height: stairHeight,
                 depth: stairDepth
             }, this.scene);
-    
+
             step.position.x = xPos - stairWidth * i; // Move steps further from the door
             step.position.y = stairHeight * (stairCount - i - 10.5); // Lower each step
             step.position.z = 0; // Center with door
-    
+
             step.material = stairMaterial;
             step.checkCollisions = true;
         }

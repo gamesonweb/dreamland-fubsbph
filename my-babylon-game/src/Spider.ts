@@ -21,7 +21,7 @@ export class Spider extends GameObject {
 
             // Création du cube de collision pour l'araignée avec les mêmes dimensions que la BoundingInfo
             this.createCollisionCube(scene, position, scale, min, max);
-            if(this.collisionCube!=null)this.collisionCube.showBoundingBox = true;
+            if(this.collisionCube!=null)this.collisionCube.showBoundingBox = false;
 
         });
         this.speed = speed;
@@ -48,7 +48,7 @@ export class Spider extends GameObject {
     }
 
     // Méthode pour déplacer l'araignée vers le personnage
-    public crawl(target: Character) {
+    public crawl(target: Character, allSpiders: Spider[]) {
         if (!this.mesh) {
             return;
         }
@@ -81,6 +81,24 @@ export class Spider extends GameObject {
             }
         } else {
             // Si l'araignée est suffisamment proche du personnage, elle s'arrête
+        }
+
+        // Avoid overlapping with other spiders
+        for (const other of allSpiders) {
+            if (other === this || !other.mesh || !this.mesh) continue;
+
+            const distance = Vector3.Distance(this.mesh.position, other.mesh.position);
+            const minDistance = 1.5; // Minimum allowed distance between spiders
+
+            if (distance < minDistance) {
+                const pushDir = this.mesh.position.subtract(other.mesh.position).normalize();
+                const pushAmount = (minDistance - distance) * 0.5;
+
+                this.mesh.position.addInPlace(pushDir.scale(pushAmount));
+                if (this.collisionCube) {
+                    this.collisionCube.position = this.mesh.position.clone();
+                }
+            }
         }
     }
 

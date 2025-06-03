@@ -1,0 +1,90 @@
+import { Scene, Vector3, MeshBuilder, StandardMaterial, Quaternion, BoundingInfo, Mesh } from "@babylonjs/core";
+import { GameObject } from "./GameObject";
+import Character from "./character";
+
+export class Shark extends GameObject {
+    private speed: number;
+    public collisionCube: Mesh | null = null;
+    private attackRange: number = 1;
+    private attackCooldown: number = 100; // durée entre deux attaques
+    private attackTimer: number = 0;
+
+    constructor(scene: Scene, modelPath: string, fileName: string, position: Vector3, scale: Vector3, speed: number = 0.01) {
+        super(scene, modelPath, fileName, position, scale, (mesh) => {
+            const min = new Vector3(-0.5, -0.5, -1);
+            const max = new Vector3(0.5, 0.5, 1);
+            mesh.setBoundingInfo(new BoundingInfo(min, max));
+            //mesh.showBoundingBox = true;
+
+            this.createCollisionCube(scene, position, scale, min, max);
+            if (this.collisionCube) this.collisionCube.showBoundingBox = false;
+        });
+
+        this.speed = speed;
+    }
+
+    private createCollisionCube(scene: Scene, position: Vector3, scale: Vector3, min: Vector3, max: Vector3) {
+        const size = max.subtract(min);
+
+        this.collisionCube = MeshBuilder.CreateBox("sharkCollisionCube", {
+            width: size.x,
+            height: size.y,
+            depth: size.z
+        }, scene);
+
+        this.collisionCube.position = position.clone();
+        this.collisionCube.scaling = scale;
+
+        const material = new StandardMaterial("collisionMaterial", scene);
+        material.alpha = 0;
+        this.collisionCube.material = material;
+        this.collisionCube.checkCollisions = true;
+    }
+
+    // Le requin poursuit le joueur dans les 3 axes
+    public swimTowards(target: Character) {
+        if (!this.mesh || !target.mesh) return;
+
+        const direction = target.mesh.position.subtract(this.mesh.position).normalize();
+        const distance = Vector3.Distance(this.mesh.position, target.mesh.position);
+
+        if (distance > this.attackRange) {
+            // Avancer vers le joueur dans toutes les directions
+            const moveVector = direction.scale(this.speed);
+            this.move(moveVector);
+        } else {
+            // Attaque si à portée
+            this.attack(target);
+        }
+
+        // Synchroniser la position du cube de collision
+        if (this.collisionCube) {
+            this.collisionCube.position = this.mesh.position.clone();
+        }
+
+        // Orientation du requin
+        const angleY = Math.atan2(direction.x, direction.z);
+        const angleX = -Math.atan2(direction.y, Math.sqrt(direction.x * direction.x + direction.z * direction.z));
+        this.mesh.rotationQuaternion = Quaternion.FromEulerAngles(angleX, angleY, 0);
+        if (this.collisionCube) {
+            this.collisionCube.rotationQuaternion = Quaternion.FromEulerAngles(angleX, angleY, 0);
+        }
+    }
+
+    // Attaque le joueur si le cooldown est passé
+    private attack(target: Character) {
+        let direction
+        if (this.attackTimer <= 0) {
+            console.log("Shark attacks the player!");
+            if(this.collisionCube!=null) {direction = target.collisionMesh.position.subtract(this.collisionCube.position).normalize();}
+            target.getHit(direction); // suppose que le Character a une méthode getHit()
+            this.attackTimer = this.attackCooldown;
+        }
+    }
+
+    public update() {
+        if (this.attackTimer > 0) {
+            this.attackTimer--;
+        }
+    }
+}

@@ -1,30 +1,56 @@
 import { Color3, Scene, Vector3 } from "@babylonjs/core";
 import TestLevel from "./TestLevel";
+import SecondLevel from "./SecondLevel";
 import Character from "./character";
 
+let currentLevel: TestLevel | SecondLevel;
+let mainCharacter: Character;
 
-let levelTest: TestLevel;
+async function initGame(): Promise<void> {
+    currentLevel = new TestLevel();
+    await currentLevel.ready;
 
+    mainCharacter = new Character(currentLevel.scene, new Vector3(-5, 0.6, 0), currentLevel);
+    currentLevel.starting(mainCharacter);
 
+    currentLevel.engine.runRenderLoop(() => {
+        currentLevel.scene.render();
 
-async function createTestLevel(): Promise<Scene> {
-    levelTest = new TestLevel();
+        const pos = mainCharacter.collisionMesh.position;
 
-    await levelTest.ready;
-    
-    const mainCharacter = new Character(levelTest.scene, new Vector3(-5, 0.6, 0), Color3.Red(),levelTest);
-    // Appel de la fonction starting pour démarrer la boucle de rendu
-    levelTest.starting(mainCharacter);
+        if (
+            pos.x >= -143.90 && pos.x <= -141.28 &&
+            pos.z >= 16.55 && pos.z <= 17.02
+        ) {
+            if (!(currentLevel instanceof SecondLevel)) {
+                console.log("Transition vers SecondLevel");
 
-    return levelTest.scene;
+                currentLevel.engine.stopRenderLoop();
+
+                currentLevel.scene.dispose();
+
+                loadSecondLevel();
+            }
+        }
+    });
 }
 
-// Créer et initialiser la scène
-const scene = createTestLevel();
+async function loadSecondLevel() {
+    currentLevel = new SecondLevel();
+    await currentLevel.ready;
 
-// Gérer le redimensionnement de la fenêtre
+    mainCharacter = new Character(currentLevel.scene, new Vector3(-5, 0.6, 0), currentLevel);
+    currentLevel.starting(mainCharacter);
+
+    currentLevel.engine.runRenderLoop(() => {
+        currentLevel.scene.render();
+    });
+}
+
+initGame();
+
 window.addEventListener("resize", () => {
-    if (levelTest && levelTest.engine) {
-        levelTest.engine.resize();
+    if (currentLevel && currentLevel.engine) {
+        currentLevel.engine.resize();
     }
 });
