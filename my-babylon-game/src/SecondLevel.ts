@@ -32,9 +32,11 @@ export default class SecondLevel {
     public ready: Promise<void>;
     public mainCharacter!: Character;
     public isAttacking = false;
-    private healthDisplay: HTMLElement | undefined;
+    //private healthDisplay: HTMLElement | undefined;
+    private hpFillBar: HTMLElement | null = null;
     private donutsDisplay: HTMLElement | undefined;
-    private positionDisplay: HTMLElement | undefined;
+    private donutFillBar: HTMLElement | null = null;
+    //private positionDisplay: HTMLElement | undefined;
     private finishDisplay: HTMLElement | undefined;
     public donuts: GameObject[] = [];
     private donutsFound: number;
@@ -50,11 +52,14 @@ export default class SecondLevel {
     private air: number = 100;
     private maxAir: number = 100;
     private airDisplay: HTMLElement | undefined;
+    private airFillBar: HTMLElement | null = null;
     private airDrainRate: number = 1;
     private airDrainInterval: number = 500;
     private shark!: TransformNode;
     private sharkActive: boolean = false;
     private door: Mesh | null = null;
+    private crabs: AbstractMesh[] = [];
+
 
     constructor() {
         this.canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
@@ -76,11 +81,14 @@ export default class SecondLevel {
         this.donutsFound = 0;
         this.donuts = [];
         this.createLighting();
-        this.healthDisplay = document.getElementById("healthDisplay")!;
-        this.positionDisplay = document.getElementById("positionDisplay")!;
+        //this.healthDisplay = document.getElementById("healthDisplay")!;
+        this.hpFillBar = document.getElementById("hp-bar-fill");
+        //this.positionDisplay = document.getElementById("positionDisplay")!;
         this.donutsDisplay = document.getElementById("donutsDisplay")!;
+        this.donutFillBar = document.getElementById("donut-bar-fill");
         this.finishDisplay = document.getElementById("finishDisplay")!;
         this.airDisplay = document.getElementById("airDisplay")!;
+        this.airFillBar = document.getElementById("air-bar-fill");
         this.air = this.maxAir;
         this.door = MeshBuilder.CreateBox("sharkCube", { size: 10 }, this.scene);
         this.door.position = new Vector3(-128, 0.60, -4);
@@ -90,11 +98,31 @@ export default class SecondLevel {
         cubeMaterial.diffuseColor = new Color3(1, 0, 0); // rouge
         this.door.material = cubeMaterial;
 
+        const label = document.getElementById("air-label");
+        if (label) {
+            label.textContent = `${Math.floor(this.air)}%`;
+        }
+
+        const airContainer = document.getElementById("air-bar-container");
+        if (airContainer) {
+            airContainer.style.display = "flex"; //
+        }
+
+        if (this.donutsDisplay) {
+            this.donutsDisplay.textContent = `Donuts to open the red door: ${this.donutsFound}/${this.donuts.length}`;
+        }
+
+        if (this.donutFillBar) {
+            this.donutFillBar.style.width = "0%";
+        }
+
+
         await Promise.all([
             this.loadLevel(),
             this.loadFishes(),
             this.loadShark(),
-            this.loadKeys()
+            this.loadKeys(),
+            this.loadCrabs(),
         ]);
         this.createUnderwaterEffect(); //  Underwater visuals
     }
@@ -125,10 +153,20 @@ export default class SecondLevel {
             }
         });
         this.air = this.maxAir;
-        if (this.airDisplay) {`
+        /*if (this.airDisplay) {`
             this.airDisplay.textContent = Air: ${this.air}%`;
-        }
+        }*///////////////////////////////////////////////////////////
+        if (this.airFillBar) {
+            const percent = this.air / this.maxAir;
+            this.airFillBar.style.width = `${Math.max(0, Math.min(percent * 100, 100))}%`;
 
+            // Optional: Add warning color when low
+            if (percent < 0.2) {
+                this.airFillBar.classList.add("low-air");
+            } else {
+                this.airFillBar.classList.remove("low-air");
+            }
+        }
     }
 
     public async loadLevel(): Promise<void> {
@@ -260,6 +298,91 @@ export default class SecondLevel {
         console.log(`${fishPositions.length} fishes loaded at fixed positions.`);
     }
 
+    /*private loadCrabs() {
+        const crabPositions = [
+            new Vector3(-91.88, 23.60, 6.54),
+            new Vector3(-72.66, 25.14, 6.25),
+            new Vector3(-77.03, 9.85, 4.86),
+            new Vector3(-83.59, 0.61, 5.66),
+        ];
+
+        SceneLoader.ImportMeshAsync(null, "/", "animated_crab.glb", this.scene).then((result) => {
+            const root = result.meshes[0]; // Usually the root TransformNode
+            const crabMeshes = result.meshes.slice(1); // Actual mesh parts
+            const crabSkeletons = result.skeletons;
+
+            crabPositions.forEach((pos, index) => {
+                // Clone the crab mesh hierarchy
+                const crabInstance = root.clone(`crab_${index}`, null)!;
+                crabInstance.position = pos.clone();
+
+                // Re-assign skeleton and animations if present
+                crabInstance.getChildMeshes().forEach((mesh, idx) => {
+                    if (crabSkeletons[0]) {
+                        mesh.skeleton = crabSkeletons[0].clone(`crab_skel_${index}`);
+                    }
+                });
+            });
+
+            console.log("Crabs placed at specified positions!");
+        });
+    }*/
+   private loadCrabs() {
+        const crabPositions = [
+            new Vector3(-91.88, 23, 6.54),
+            new Vector3(-72.66, 25, 6.25),
+            new Vector3(-77.03, 8, 4.86),
+            new Vector3(-83.59, 0.5, 5.66),
+        ];
+
+        SceneLoader.ImportMeshAsync(null, "/", "animated_crab.glb", this.scene).then((result) => {
+            const root = result.meshes[0]; // Likely a TransformNode
+            const crabSkeleton = result.skeletons[0]; // Shared skeleton
+
+            crabPositions.forEach((pos, index) => {
+                const crab = root.clone(`crab_${index}`, null)!;
+                crab.position = pos.clone();
+
+                // Clone animation skeleton
+                crab.getChildMeshes().forEach((mesh) => {
+                    if (crabSkeleton) {
+                        mesh.skeleton = crabSkeleton.clone(`crab_skel_${index}`);
+                    }
+                });
+                crab.checkCollisions = true;
+
+                // Store crab & movement direction in metadata
+                (crab as any).moveDir = 1; // Start moving forward (+Z)
+                this.crabs.push(crab);
+            });
+
+            this.setupCrabMovement();
+        });
+    }
+
+    private setupCrabMovement() {
+        const zMin = -6.54;
+        const zMax = 6.54;
+        const speed = 0.05; // Tune this for faster/slower crabs
+
+        this.scene.onBeforeRenderObservable.add(() => {
+            this.crabs.forEach((crab) => {
+                const moveDir = (crab as any).moveDir;
+                crab.position.z += speed * moveDir;
+
+                // Flip direction if limits reached
+                if (crab.position.z > zMax) {
+                    (crab as any).moveDir = -1;
+                } else if (crab.position.z < zMin) {
+                    (crab as any).moveDir = 1;
+                }
+            });
+        });
+    }
+
+
+
+
     private async loadShark(): Promise<void> {
         const sharkPath = "/";
         const sharkFile = "shark.glb";
@@ -297,7 +420,6 @@ export default class SecondLevel {
 
         console.log("Donuts are being loaded...");
     }
-
 
     private setupCamera(): void {
         this.followCamera = new FollowCamera("FollowCam", new Vector3(0, 5, -10), this.scene);
@@ -342,8 +464,16 @@ export default class SecondLevel {
                         console.log("Donut collected! Total:", this.donutsFound);
 
                         // Met à jour l'affichage immédiatement
-                        if (this.donutsDisplay != null) {
+                        /*if (this.donutsDisplay != null) {
                             this.donutsDisplay.textContent = `donuts: ${this.donutsFound}/${this.donuts.length + this.donutsFound}`;
+                        }*/
+                        if (this.donutsDisplay) {
+                            this.donutsDisplay.textContent = `donuts: ${this.donutsFound}/${this.donuts.length + this.donutsFound}`;
+                        }
+
+                        if (this.donutFillBar) {
+                            const percent = this.donutsFound / 5; // Max is 5 donuts
+                            this.donutFillBar.style.width = `${Math.min(percent * 100, 100)}%`;
                         }
                     }
                 }
@@ -366,6 +496,20 @@ export default class SecondLevel {
 
             if (this.airDisplay) {
                 this.airDisplay.textContent = `Air: ${Math.floor(this.air)}%`;
+            }
+            const label = document.getElementById("air-label");
+            if (label) {
+                label.textContent = `${Math.floor(this.air)}%`;
+            }
+            if (this.airFillBar) {
+                const airPercent = this.air / this.maxAir;
+                this.airFillBar.style.width = `${Math.max(0, Math.min(airPercent * 100, 100))}%`;
+            
+                if (airPercent < 0.2) {
+                    this.airFillBar.classList.add("low-air");
+                } else {
+                    this.airFillBar.classList.remove("low-air");
+                } 
             }
 
             if (this.air <= 0) {
@@ -443,10 +587,14 @@ export default class SecondLevel {
 
 
         this.engine.runRenderLoop(() => {
-            if (this.healthDisplay != null) this.healthDisplay.textContent = `HP: ${this.mainCharacter.currentHP}/${this.mainCharacter.maxHP}`;
+            //if (this.healthDisplay != null) this.healthDisplay.textContent = `HP: ${this.mainCharacter.currentHP}/${this.mainCharacter.maxHP}`;
+            if (this.hpFillBar) {
+                const percent = this.mainCharacter.currentHP / this.mainCharacter.maxHP;
+                this.hpFillBar.style.width = `${Math.max(0, Math.min(percent * 100, 100))}%`;
+            }
             if (this.donutsDisplay != null) this.donutsDisplay.textContent = `Donuts to open the red door: ${this.donutsFound}/5`;
             const pos = this.mainCharacter.collisionMesh.position;
-            if (this.positionDisplay != null) this.positionDisplay.textContent = `Position: (x: ${pos.x.toFixed(2)}, y: ${pos.y.toFixed(2)}, z: ${pos.z.toFixed(2)})`;
+            //if (this.positionDisplay != null) this.positionDisplay.textContent = `Position: (x: ${pos.x.toFixed(2)}, y: ${pos.y.toFixed(2)}, z: ${pos.z.toFixed(2)})`;
             if(this.finishDisplay!=null && this.mainCharacter.collisionMesh.position.x>-162 && this.donutsFound!=5) this.finishDisplay.textContent = ``;
             if(this.finishDisplay!=null && this.mainCharacter.collisionMesh.position.x<=-162 && this.donutsFound==5) {
                 this.finishDisplay.textContent = `COMING SOON...`;
@@ -541,9 +689,26 @@ export default class SecondLevel {
                     // Réinitialise l'air
                     if (this.air < this.maxAir) {
                         this.air = this.maxAir;
-                        if (this.airDisplay) {
+                        /*if (this.airDisplay) {
                             this.airDisplay.textContent = `Air: ${this.air}%`;
+                        }*/////////////////////////////////////////////////////
+                        const label = document.getElementById("air-label");
+                        if (label) {
+                            label.textContent = `${Math.floor(this.air)}%`;
                         }
+
+                        if (this.airFillBar) {
+                            const percent = this.air / this.maxAir;
+                            this.airFillBar.style.width = `${Math.max(0, Math.min(percent * 100, 100))}%`;
+
+                            // Optional: Add warning color when low
+                            if (percent < 0.2) {
+                                this.airFillBar.classList.add("low-air");
+                            } else {
+                                this.airFillBar.classList.remove("low-air");
+                            }
+                        }
+
                     }
 
                     console.log("Fish collected! Air replenished.");

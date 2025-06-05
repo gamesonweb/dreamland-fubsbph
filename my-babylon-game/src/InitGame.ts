@@ -1,12 +1,18 @@
-import { Color3, Scene, Vector3 } from "@babylonjs/core";
+import { Vector3 } from "@babylonjs/core";
 import TestLevel from "./TestLevel";
 import SecondLevel from "./SecondLevel";
 import Character from "./character";
 
 let currentLevel: TestLevel | SecondLevel;
 let mainCharacter: Character;
-
+const popup = document.getElementById('controls-popup');
+const button = document.getElementById('open-controls-btn');
 async function initGame(): Promise<void> {
+    document.getElementById("mainMenu")!.style.display = "none";
+    document.getElementById("characterMenu")!.style.display = "none";
+    document.getElementById("creditsModal")!.style.display = "none";
+    document.getElementById("hud")!.style.display = "block";
+
     currentLevel = new TestLevel();
     await currentLevel.ready;
 
@@ -23,12 +29,8 @@ async function initGame(): Promise<void> {
             pos.z >= 16.55 && pos.z <= 17.02
         ) {
             if (!(currentLevel instanceof SecondLevel)) {
-                console.log("Transition vers SecondLevel");
-
                 currentLevel.engine.stopRenderLoop();
-
                 currentLevel.scene.dispose();
-
                 loadSecondLevel();
             }
         }
@@ -47,7 +49,54 @@ async function loadSecondLevel() {
     });
 }
 
-initGame();
+window.addEventListener("DOMContentLoaded", () => {
+    // Start Game
+    document.getElementById("startButton")?.addEventListener("click", () => {
+        initGame();
+    });
+
+    // Character Select screen
+    document.getElementById("characterButton")?.addEventListener("click", () => {
+        document.getElementById("mainMenu")!.style.display = "none";
+        document.getElementById("characterMenu")!.style.display = "block";
+    });
+
+    // Back from Character Select
+    document.getElementById("charBack")?.addEventListener("click", () => {
+        document.getElementById("characterMenu")!.style.display = "none";
+        document.getElementById("mainMenu")!.style.display = "block";
+    });
+
+    // Show Credits
+    document.getElementById("creditsButton")?.addEventListener("click", () => {
+        document.getElementById("creditsModal")!.style.display = "block";
+    });
+
+    // Close Credits
+    document.getElementById("closeCredits")?.addEventListener("click", () => {
+        document.getElementById("creditsModal")!.style.display = "none";
+    });
+    document.getElementById("controlsButton")?.addEventListener("click", () => {
+        document.getElementById("controlsModal")!.style.display = "block";
+    });
+
+    // Close Controls
+    document.getElementById("closeControls")?.addEventListener("click", () => {
+        document.getElementById("controlsModal")!.style.display = "none";
+    });
+    if (button) {
+    button.addEventListener('click', () => {
+        popup!.style.display = 'block';
+    });
+    }
+
+    function closePopup() {
+    if (popup) {
+        popup.style.display = 'none';
+    }
+    }
+
+});
 
 window.addEventListener("resize", () => {
     if (currentLevel && currentLevel.engine) {

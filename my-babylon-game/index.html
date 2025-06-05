@@ -5,21 +5,63 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Babylon.js Game</title>
   <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
 </head>
 <body>
 
   <!-- Game Canvas -->
   <canvas id="renderCanvas"></canvas>
 
-  <!-- Loading Screen -->
-  <div id="loadingScreen">Loading game...</div>
+  <!-- Main Menu -->
+  <div id="mainMenu">
+    <h1 id="menuTitle">Lisani & Nisali</h1>
+    <button class="menuButton" id="startButton">Start Game</button>
+    <button class="menuButton" id="creditsButton">Credits</button>
+    <div id="1234"><li>Move: W/A/S/D or Arrow keys</li>
+      <li>Jump / Swim Up: Spacebar</li>
+      <li>Crawl / Swim Down: Shift</li>
+      <li>Grab / Interact: C</li>
+    </ul></div>
+    </div>
+  </div>
 
-  <!-- HUD -->
-  <div id="hud">
-    <div id="healthDisplay" style="font-size: 24px;">Health: 100</div>
-    <div id="donutsDisplay" style="font-size: 24px;">Donuts: 0</div>
-    <div id="positionDisplay">Position: (x: 0, y: 0, z: 0)</div>
-    <div id="airDisplay">Air: 100%</div>
+  <!-- Character Select Screen -->
+  <div id="characterMenu" style="display: none;">
+    <h2>Select Your Character</h2>
+    <p>This is a placeholder screen for character selection.</p>
+    <button class="menuButton" id="charBack">Back to Menu</button>
+  </div>
+
+  <!-- Credits Modal -->
+  <div id="creditsModal" style="display: none;"></div>
+
+
+  <!-- HUD (hidden by default) -->
+  <div id="hud" style="display: none;">
+    <!--div id="healthDisplay" style="font-size: 24px;">Health: 100</div-->
+    <div id="hp-bar-container">
+      <img src="/health.png" alt="Heart" class="hp-heart" />
+      <div class="hp-bar-background">
+        <div id="hp-bar-fill"></div>
+      </div>
+    </div> 
+    <!--div id="donutsDisplay" style="font-size: 24px;">Donuts: 0</div-->
+    <div id="donut-bar-container">
+      <img src="/donut.png" class="donut-icon" />
+      <div class="donut-bar-background">
+        <div id="donut-bar-fill"></div>
+      </div>
+    </div>
+
+    <!--div id="positionDisplay">Position: (x: 0, y: 0, z: 0)</div-->
+    <!-- Air Bar (NEW) -->
+    <div id="air-bar-container" style="display: none;">
+      <img src="/oxygen.png" class="air-icon" />
+      <div class="air-bar-background">
+        <div id="air-bar-fill"><span id="air-label">100%</span></div>
+      </div>
+    </div>
+
   </div>
 
   <!-- Finish Message -->

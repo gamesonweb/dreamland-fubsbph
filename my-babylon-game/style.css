@@ -42,6 +42,7 @@ canvas {
   z-index: 999;
 }
 
+
 #positionDisplay {
   font-size: 16px;
   font-family: monospace;
@@ -60,4 +61,270 @@ canvas {
   font-weight: bold;
   text-shadow: 3px 3px 5px black;
   z-index: 1000;
+}
+
+/* Ужасное меню */
+#mainMenu {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  color: crimson;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  font-family: 'Creepster', cursive;
+  text-shadow: 2px 2px 5px black;
+}
+
+#menuTitle {
+  font-size: 64px;
+  margin-bottom: 40px;
+}
+
+.menuButton {
+  background-color: black;
+  color: crimson;
+  border: 2px solid crimson;
+  padding: 15px 30px;
+  font-size: 24px;
+  margin: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+  font-family: 'Creepster', cursive;
+}
+
+.menuButton:hover {
+  background-color: crimson;
+  color: black;
+}
+
+/* Credits Modal */
+
+#creditsContent {
+  background-color: #0a0a0a;
+  color: crimson;
+  padding: 40px;
+  border: 3px solid crimson;
+  text-align: center;
+  font-family: 'Creepster', cursive;
+  font-size: 24px;
+  width: 500px;
+  max-width: 90%;
+  box-shadow: 0 0 25px crimson;
+  border-radius: 12px;
+  text-shadow: 1px 1px 4px black;
+}
+
+#hud {
+  display: none;
+}
+
+#creditsModal {
+  display: none;
+  position: fixed;
+  z-index: 200;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(5, 0, 5, 0.95);
+  backdrop-filter: blur(4px);
+  
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+
+
+
+
+
+/* Custom Close Button */
+#closeCredits {
+  margin-top: 30px;
+  background-color: black;
+  color: crimson;
+  border: 2px solid crimson;
+  padding: 12px 25px;
+  font-size: 22px;
+  font-family: 'Creepster', cursive;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+#closeCredits:hover {
+  background-color: crimson;
+  color: black;
+  box-shadow: 0 0 10px crimson;
+}
+#characterSelect {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, #000 60%, #110011 100%);
+  color: crimson;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 150;
+  font-family: 'Creepster', cursive;
+  text-shadow: 2px 2px 6px black;
+}
+
+#characterTitle {
+  font-size: 48px;
+  margin-bottom: 30px;
+}
+
+#characterModels {
+  display: flex;
+  gap: 60px;
+  justify-content: center;
+  align-items: center;
+}
+
+#boyContainer, #girlContainer {
+  width: 300px;
+  height: 400px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 2px solid crimson;
+  border-radius: 10px;
+  box-shadow: 0 0 20px crimson;
+}
+
+
+
+#hp-bar-container {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  z-index: 10;
+}
+
+.hp-heart {
+  height: 35px;
+  margin-right: 3px;
+  filter: drop-shadow(0 0 5px #ff0000); /* red glow */
+}
+
+.hp-bar-background {
+  width: 300px;
+  height: 20px;
+  background: linear-gradient(to right, #444, #777); /* gray base */
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid #222;
+  box-shadow: inset 0 0 5px #000;
+}
+
+#hp-bar-fill {
+  height: 100%;
+  width: 100%; /* Controlled via JS */
+  background: linear-gradient(to right, #ff0000, #cc0000); /* red gradient */
+  border-radius: 12px 0 0 12px;
+  transition: width 0.2s ease-out;
+  box-shadow: inset 0 0 5px #000;
+}
+
+#donut-bar-container {
+  position: absolute;
+  top: 70px; /* below HP bar */
+  left: 20px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  z-index: 10;
+}
+
+.donut-icon {
+  height: 39px;
+  filter: drop-shadow(0 0 5px #d123c8); /*  glow */
+}
+
+.donut-bar-background {
+  width: 300px;
+  height: 20px;
+  background: linear-gradient(to right, #444, #777); /* gray base */
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid #222;
+  box-shadow: inset 0 0 5px #000;
+}
+
+#donut-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(to right, #ff66cc, #ff3399); /* pink gradient */
+  border-radius: 10px 0 0 10px;
+  transition: width 0.2s ease-out;
+  box-shadow: inset 0 0 5px #000;
+}
+
+#air-bar-container {
+  position: absolute;
+  top: 120px; /* Adjust as needed below donut bar */
+  left: 20px;
+  display: flex;
+  align-items: center;
+  z-index: 10;
+}
+
+.air-icon {
+  height: 37px;
+  filter: drop-shadow(0 0 5px #00ccff); /* blue glow */
+}
+
+.air-bar-background {
+  width: 300px;
+  height: 20px;
+  background: linear-gradient(to right, #1a3a5f, #2a5f7a);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid #0a1f2f;
+  box-shadow: inset 0 0 6px rgba(0, 80, 150, 0.7);
+}
+
+#air-bar-fill {
+  height: 100%;
+  width: 100%; /* full by default */
+  background: linear-gradient(to right, #00ccff, #0099cc);
+  border-radius: 10px 0 0 10px;
+  transition: width 0.3s ease-in-out;
+  position: relative;
+  box-shadow: inset 0 0 5px #000;
+}
+
+#air-bar-fill.low-air {
+  animation: pulseAir 1s infinite;
+}
+
+@keyframes pulseAir {
+  0% { background-color: #00ccff; }
+  40% { background-color: #ff6666; }
+  100% { background-color: #00ccff; }
+}
+
+#air-label {
+  position: absolute;
+  left: 10px; /* Space from the left */
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  font-family: Arial, sans-serif;
+  pointer-events: none; /* Prevents it from capturing clicks */
 }

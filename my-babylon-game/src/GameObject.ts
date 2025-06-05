@@ -2,7 +2,7 @@ import { Scene, SceneLoader, Vector3, Mesh } from "@babylonjs/core";
 import "@babylonjs/loaders";
 
 export class GameObject {
-    public mesh: Mesh | null = null; // Основная 3D-модель
+    public mesh: Mesh | null = null; 
     public collisionCube: Mesh | null = null;
 
     constructor(scene: Scene, modelPath: string, fileName: string, position: Vector3, scale: Vector3, onLoad?: (mesh: Mesh) => void) {
@@ -13,7 +13,6 @@ export class GameObject {
                 this.mesh.scaling = scale;
                 this.mesh.checkCollisions = true;
 
-                // Вызываем callback, если он передан
                 if (onLoad) {
                     onLoad(this.mesh);
                 }
@@ -21,14 +20,12 @@ export class GameObject {
         });
     }
 
-    // Метод для перемещения объекта
     public move(direction: Vector3) {
         if (this.mesh) {
             this.mesh.moveWithCollisions(direction);
         }
     }
 
-    // Метод для клонирования объекта
     public clone(scene: Scene, name: string, position: Vector3): GameObject | null {
         if (!this.mesh) return null;
         const newMesh = this.mesh.clone(name);
@@ -39,7 +36,6 @@ export class GameObject {
         return null;
     }
 
-    // Проверка, загружен ли объект
     public isLoaded(): boolean {
         return this.mesh !== null;
     }
